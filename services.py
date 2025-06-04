@@ -21,5 +21,3 @@ def calculate_level_and_next(xp):
         xp_to_next = 0  # já está no nível máximo
 
     return level, next_threshold, xp_to_next
-
-

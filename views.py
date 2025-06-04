@@ -213,6 +213,45 @@ def reset_all_missions():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
     
+@app.route('/check_missions', methods=['POST'])
+def check_missions():
+    base_xp = 30
+    xp_growth = 0.5  # crescimento lento por streak
+    
+    missions = CharacterMission.query.all()
+    results = []
+
+    for mission in missions:
+        if mission.completed:
+            mission.streak += 1
+
+            # XP reward aumenta de forma linear e lenta
+            mission.xp_reward = round(base_xp + (mission.streak - 1) * xp_growth)
+
+        else:
+            mission.streak = 0
+            mission.xp_reward = base_xp
+
+        mission.completed = False
+
+        results.append({
+            'mission_id': mission.id,
+            'mission_title': mission.title,
+            'xp_reward': mission.xp_reward,
+            'current_streak': mission.streak
+        })
+
+    db.session.commit()
+
+    return jsonify({
+        'status': 'success',
+        'message': 'Missions checked, streaks and XP updated',
+        'missions': results
+    }), 200
+
+
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
