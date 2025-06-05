@@ -79,3 +79,29 @@ class CharacterMission(db.Model):
     
     # Relacionamento
     character = db.relationship('Character', back_populates='missions')
+
+class CharacterRelic(db.Model):
+    """
+    Modelo para armazenar as relíquias conquistadas por um personagem.
+
+    Attributes:
+        id (int): Identificador único da relíquia.
+        character_id (int): ID do personagem associado (chave estrangeira).
+        name (str): Nome da relíquia.
+        description (str): Descrição da relíquia, incluindo contexto ou lore.
+        unlocked_at (datetime): Data e hora em que a relíquia foi desbloqueada.
+        bonus_type (str): Tipo de bônus passivo associado (opcional).
+        bonus_value (float): Valor do bônus (opcional, exemplo: 0.05 para +5% XP).
+    """
+    __tablename__ = 'character_relics'
+
+    id = db.Column(db.Integer, primary_key=True)
+    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    unlocked_at = db.Column(db.DateTime, nullable=False)
+    bonus_type = db.Column(db.String(50), nullable=True)  # Ex: "strength_xp_boost", "mission_streak_bonus"
+    bonus_value = db.Column(db.Float, default=0.0)
+
+    # Relacionamento
+    character = db.relationship('Character', backref='relics')

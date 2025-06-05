@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Flask, request, jsonify
 from models import db, Character, CharacterAttribute, CharacterMission
 from sqlalchemy import func
@@ -22,10 +23,23 @@ db.init_app(app)
 # cria o objeto migrate
 migrate = Migrate(app, db)
 
+
+############################################
+##                                        
+##          🟩 GENERAL ENDPOINTS          
+##                                        
+############################################
+
 # Aqui vão suas rotas do Flask, exemplo:
 @app.route('/')
 def home():
     return "RPG Habits API is running"
+
+############################################
+##                                        ##
+##         🟦 CHARACTER ENDPOINTS         ##
+##                                        ##
+############################################
 
 @app.route('/character/<string:name>', methods=['GET'])
 def get_character(name):
@@ -92,6 +106,12 @@ def create_character():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+
+############################################
+##                                        ##
+##          🟨 MISSION ENDPOINTS          ##
+##                                        ##
+############################################
 
 @app.route('/character/<string:name>/mission', methods=['POST'])
 def add_mission(name):
@@ -213,7 +233,7 @@ def reset_all_missions():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
     
-@app.route('/check_missions', methods=['POST'])
+@app.route('/daily-update', methods=['POST'])
 def check_missions():
     base_xp = 30
     xp_growth = 0.5  # crescimento lento por streak
