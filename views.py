@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
+from random import randint
 
 # Carrega as variáveis do .env
 load_dotenv()
@@ -207,6 +208,7 @@ def add_mission_from_template(name):
     try:
         # Cria a missão baseada no template
         mission = CharacterMission(
+            id=randint(1, 1000000),  # Garante um ID único
             character=character,
             title=template.title,
             description=template.description,
