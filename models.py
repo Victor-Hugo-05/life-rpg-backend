@@ -105,3 +105,18 @@ class CharacterRelic(db.Model):
 
     # Relacionamento
     character = db.relationship('Character', backref='relics')
+
+class MissionTemplate(db.Model):
+    """
+    Modelo para armazenar missões pré-definidas (catálogo).
+    """
+    __tablename__ = 'mission_templates'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    xp_reward = db.Column(db.Integer, default=0)
+    strength = db.Column(db.Boolean, default=False)
+    discipline = db.Column(db.Boolean, default=False)
+    charisma = db.Column(db.Boolean, default=False)
+    intelligence = db.Column(db.Boolean, default=False)

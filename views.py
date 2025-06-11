@@ -1,24 +1,25 @@
 from datetime import datetime
 from flask import Flask, request, jsonify
-from models import db, Character, CharacterAttribute, CharacterMission
+from models import db, Character, CharacterAttribute, CharacterMission, MissionTemplate
 from sqlalchemy import func
-from services import calculate_level_and_next
+from services import calculate_level_and_next, _build_cors_preflight_response
 from flask_cors import CORS
 from flask_migrate import Migrate
 import os
+from dotenv import load_dotenv
+
+# Carrega as variáveis do .env
+load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Configura o caminho absoluto para o banco dentro da pasta instance
-basedir = os.path.abspath(os.path.dirname(__file__))
-db_path = os.path.join(basedir, 'instance', 'character_data.db')
-
-SQLALCHEMY_DATABASE_URI = 'sqlite:///C:/Users/anton/Documents/Projetos/RPG_Habitos_Backend/seu_banco.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+# Usa a variável de ambiente do Supabase
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SUPABASE_CONNECTION_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+
 
 # cria o objeto migrate
 migrate = Migrate(app, db)
@@ -41,8 +42,13 @@ def home():
 ##                                        ##
 ############################################
 
-@app.route('/character/<string:name>', methods=['GET'])
+@app.route('/character/<string:name>', methods=['GET', 'OPTIONS'])
 def get_character(name):
+
+    if request.method == 'OPTIONS':
+        return _build_cors_preflight_response()
+
+
     character = Character.query.filter_by(name=name).first()
     if not character:
         return jsonify({"error": "Character not found"}), 404
@@ -78,8 +84,15 @@ def get_character(name):
     })
 
 
-@app.route('/character', methods=['POST'])
+@app.route('/character', methods=['POST', 'OPTIONS'])
 def create_character():
+
+    if request.method == 'OPTIONS':
+        return _build_cors_preflight_response()
+
+    print("Headers recebidos:", request.headers)  # Verifique no console
+    print("Origin:", request.headers.get('Origin'))
+
     data = request.get_json()
     name = data.get("name")
 
@@ -112,6 +125,27 @@ def create_character():
 ##          🟨 MISSION ENDPOINTS          ##
 ##                                        ##
 ############################################
+
+@app.route('/missions/templates', methods=['GET'])
+def list_mission_templates():
+    templates = MissionTemplate.query.all()
+    return jsonify([
+        {
+            "id": t.id,
+            "title": t.title,
+            "description": t.description,
+            "xp_reward": t.xp_reward,
+            "related_attributes": [
+                attr for attr, flag in [
+                    ("Força", t.strength),
+                    ("Disciplina", t.discipline),
+                    ("Carisma", t.charisma),
+                    ("Inteligência", t.intelligence)
+                ] if flag
+            ]
+        }
+        for t in templates
+    ])
 
 @app.route('/character/<string:name>/mission', methods=['POST'])
 def add_mission(name):
@@ -149,6 +183,47 @@ def add_mission(name):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+@app.route('/character/<string:name>/mission/template', methods=['POST'])
+def add_mission_from_template(name):
+    data = request.get_json()
+    template_id = data.get("template_id")
+
+    if not template_id:
+        return jsonify({"error": "Missing template_id"}), 400
+
+    character = Character.query.filter_by(name=name).first()
+    if not character:
+        return jsonify({"error": "Character not found"}), 404
+
+    template = MissionTemplate.query.get(template_id)
+    if not template:
+        return jsonify({"error": "Mission template not found"}), 404
+
+    # Verifica se o personagem já tem uma missão com o mesmo título
+    existing_mission = CharacterMission.query.filter_by(character_id=character.id, title=template.title).first()
+    if existing_mission:
+        return jsonify({"error": "Character already has this mission"}), 400
+
+    try:
+        # Cria a missão baseada no template
+        mission = CharacterMission(
+            character=character,
+            title=template.title,
+            description=template.description,
+            xp_reward=template.xp_reward,
+            strength=template.strength,
+            discipline=template.discipline,
+            charisma=template.charisma,
+            intelligence=template.intelligence
+        )
+        db.session.add(mission)
+        db.session.commit()
+
+        return jsonify({"message": "Mission added successfully"}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/character/<string:name>/complete_mission', methods=['POST'])
 def complete_mission(name):
@@ -272,7 +347,15 @@ def check_missions():
 
 
 
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
+
+############################################
+##                                        ##
+##          ⚠️ LEGACY ENDPOINTS           ##
+##                                        ##
+############################################

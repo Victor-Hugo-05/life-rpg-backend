@@ -1,3 +1,7 @@
+
+from flask import jsonify
+
+
 def calculate_level_and_next(xp):
     
     # Constante com os thresholds de XP para cada nível
@@ -21,3 +25,10 @@ def calculate_level_and_next(xp):
         xp_to_next = 0  # já está no nível máximo
 
     return level, next_threshold, xp_to_next
+
+def _build_cors_preflight_response():
+    response = jsonify({"message": "Preflight accepted"})
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+    return response
