@@ -226,8 +226,9 @@ def complete_mission(name):
             "attribute_progress": {}
         }
 
+        
         def update_attribute(attr_name):
-            attr_xp = getattr(attributes, f"{attr_name}_xp")
+            attr_xp = getattr(attributes, f"{attr_name}_xp") or 0  # força 0 se for None
             attr_xp += xp
             setattr(attributes, f"{attr_name}_xp", attr_xp)
 

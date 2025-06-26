@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desafio de Força</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='game/style.css') }}">
+</head>
+<body>
+  <div class="game-container">
+    <h2>Desafio de Levantamento de Pesos</h2>
+    <button id="startGameBtn" class="btn">Começar Jogo</button>
+    <div id="game" class="hidden">
+      <p>Cliques: <span id="clicks">0</span></p>
+      <button id="clickBtn" class="btn">Levantar Peso</button>
+      <p id="message"></p>
+      <p>XP de Força: <span id="xp">0</span></p>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='game/game.js') }}"></script>
+</body>
+</html>
