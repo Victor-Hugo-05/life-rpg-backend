@@ -31,7 +31,7 @@ class CharacterAttribute(db.Model):
         character_id (int): ID do personagem associado (chave estrangeira).
         strength_xp (int): Experiência acumulada em Força.
         discipline_xp (int): Experiência acumulada em Disciplina.
-        charisma_xp (int): Experiência acumulada em Carisma.
+        health_xp (int): Experiência acumulada em Saúde.
         intelligence_xp (int): Experiência acumulada em Inteligência.
     """
     __tablename__ = 'character_attributes'
@@ -40,7 +40,7 @@ class CharacterAttribute(db.Model):
     character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), unique=True, nullable=False)
     strength_xp = db.Column(db.Integer, default=0)
     discipline_xp = db.Column(db.Integer, default=0)
-    charisma_xp = db.Column(db.Integer, default=0)
+    health_xp = db.Column(db.Integer, default=0)
     intelligence_xp = db.Column(db.Integer, default=0)
     
     # Relacionamento
@@ -57,11 +57,13 @@ class CharacterMission(db.Model):
         title (str): Título da missão.
         description (str): Descrição detalhada da missão.
         xp_reward (int): Recompensa de XP por completar a missão.
+        difficulty (str): Nível de dificuldade da missão (Fácil, Médio, Difícil).
         strength (bool): Indica se a missão está relacionada à Força.
         discipline (bool): Indica se a missão está relacionada à Disciplina.
-        charisma (bool): Indica se a missão está relacionada ao Carisma.
+        health (bool): Indica se a missão está relacionada à Saúde.
         intelligence (bool): Indica se a missão está relacionada à Inteligência.
         completed (bool): Indica se a missão foi completada.
+        streak (int): Número de vezes consecutivas que a missão foi completada.
     """
     __tablename__ = 'character_missions'
     
@@ -70,15 +72,17 @@ class CharacterMission(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     xp_reward = db.Column(db.Integer, default=0)
+    difficulty = db.Column(db.String(20), nullable=False, default='Fácil')
     strength = db.Column(db.Boolean, default=False)
     discipline = db.Column(db.Boolean, default=False)
-    charisma = db.Column(db.Boolean, default=False)
+    health = db.Column(db.Boolean, default=False)
     intelligence = db.Column(db.Boolean, default=False)
     completed = db.Column(db.Boolean, default=False)
     streak = db.Column(db.Integer, default=0)
     
     # Relacionamento
     character = db.relationship('Character', back_populates='missions')
+
 
 class CharacterRelic(db.Model):
     """
@@ -106,9 +110,21 @@ class CharacterRelic(db.Model):
     # Relacionamento
     character = db.relationship('Character', backref='relics')
 
+
 class MissionTemplate(db.Model):
     """
     Modelo para armazenar missões pré-definidas (catálogo).
+    
+    Attributes:
+        id (int): Identificador único do template.
+        title (str): Título da missão.
+        description (str): Descrição da missão.
+        xp_reward (int): XP padrão da missão.
+        difficulty (str): Dificuldade padrão da missão.
+        strength (bool): Relacionada à Força.
+        discipline (bool): Relacionada à Disciplina.
+        health (bool): Relacionada à Saúde.
+        intelligence (bool): Relacionada à Inteligência.
     """
     __tablename__ = 'mission_templates'
 
@@ -116,7 +132,8 @@ class MissionTemplate(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     xp_reward = db.Column(db.Integer, default=0)
+    difficulty = db.Column(db.String(20), nullable=False, default='Fácil')
     strength = db.Column(db.Boolean, default=False)
     discipline = db.Column(db.Boolean, default=False)
-    charisma = db.Column(db.Boolean, default=False)
+    health = db.Column(db.Boolean, default=False)
     intelligence = db.Column(db.Boolean, default=False)
